@@ -1,0 +1,88 @@
+<form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()" class="dynamic-form">
+  <div *ngFor="let field of formFields" class="form-field">
+    <label [for]="field.name" class="field-label">
+      {{ field.label }}
+      <span class="required-mark" *ngIf="field.validations?.required">*</span>
+    </label>
+
+    <!-- Input text/email/number/url/date -->
+    <ng-container *ngIf="['text', 'email', 'number', 'url', 'date'].includes(field.type)">
+      <div class="input-container">
+        <i class="fas" [ngClass]="{
+          'fa-phone': field.name.startsWith('phone'),
+          'fa-envelope': field.type === 'email',
+          'fa-calendar': field.type === 'date',
+          'fa-link': field.type === 'url'
+        }"></i>
+        <input [type]="field.type"
+               [id]="field.name"
+               [formControlName]="field.name"
+               class="form-input"
+               [class.is-invalid]="hasError(field.name, 'required') || 
+                                 hasError(field.name, 'pattern') || 
+                                 hasError(field.name, 'minlength')">
+      </div>
+    </ng-container>
+
+    <!-- Select -->
+    <ng-container *ngIf="field.type === 'select'">
+      <div class="input-container">
+        <i class="fas fa-chevron-down"></i>
+        <select [id]="field.name"
+                [formControlName]="field.name"
+                class="form-input">
+          <option value="">Seleccione una opción</option>
+          <option *ngFor="let option of field.options"
+                  [value]="option.key">
+            {{option.value}}
+          </option>
+        </select>
+      </div>
+    </ng-container>
+
+    <!-- Checkbox -->
+    <ng-container *ngIf="field.type === 'checkbox'">
+      <div class="checkbox-container">
+        <input type="checkbox"
+               [id]="field.name"
+               [formControlName]="field.name"
+               class="form-checkbox">
+        <label class="checkbox-label" [for]="field.name">
+          {{field.label}}
+        </label>
+      </div>
+    </ng-container>
+
+    <!-- Error messages -->
+    <div class="error-container" *ngIf="dynamicForm.get(field.name)?.touched">
+      <div class="error-message" *ngIf="hasError(field.name, 'required')">
+        <i class="fas fa-exclamation-circle"></i>
+        Este campo es requerido
+      </div>
+      <div class="error-message" *ngIf="hasError(field.name, 'pattern')">
+        <i class="fas fa-exclamation-circle"></i>
+        <ng-container [ngSwitch]="field.type">
+          <ng-container *ngSwitchCase="'email'">
+            Por favor, ingrese un correo electrónico válido
+          </ng-container>
+          <ng-container *ngSwitchCase="'url'">
+            Por favor, ingrese una URL válida (debe comenzar con http:// o https://)
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            El formato ingresado no es válido
+          </ng-container>
+        </ng-container>
+      </div>
+      <div class="error-message" *ngIf="hasError(field.name, 'minlength')">
+        <i class="fas fa-exclamation-circle"></i>
+        El campo debe tener al menos {{field.validations?.minLength}} caracteres
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="submit-button" [disabled]="!dynamicForm.valid">
+    <i class="fas fa-paper-plane"></i>
+    <span>Enviar Formulario</span>
+    <div class="button-effect"></div>
+  </button>
+</form>
